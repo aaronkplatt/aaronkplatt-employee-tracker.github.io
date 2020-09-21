@@ -99,13 +99,33 @@ function addEmployee() {
         {
             type: "input",
             name: "first_name",
-            message: "What is this Employee's First Name?",
-        }
+            message: "What is this Employee's First Name?"
+        },
+        {
+            type: "input",
+            name: "last_name",
+            message: "What is this Employee's Last Name?"
+        },
+        {
+            type: "list",
+            name: "role_title",
+            message: "What is this Employee's role?",
+            choices: ["Sales Lead", "Salesperson", "Lead Engineer", "Software Engineer", "Account Manager", "Accountant", "Legal Team Lead"]
+        },
+        {
+            type: "list",
+            name: "employee_manager",
+            message: "What is this Employee's Manager?",
+            choices: ["None", allEmployees.first_name]
+        },
     ])
     .then(function(answers) {
         const first_name = answers.first_name;
-        console.log(first_name);
+        const last_name = answers.last_name;
+        const role_title = answers.role_title;
+        const employee_manager = answers.employee_manager;
     });
+    console.log(answers);
     //go back to inital
     // initialQuestion();
 }
