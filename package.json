@@ -1,0 +1,26 @@
+{
+  "name": "aaronkplatt-employee-tracker.github.io",
+  "version": "1.0.0",
+  "description": "Developers are often tasked with creating interfaces that make it easy for non-developers to view and interact with information stored in databases. Often these interfaces are known as **C**ontent **M**anagement **S**ystems. In this homework assignment, your challenge is to architect and build a solution for managing a company's employees using node, inquirer, and MySQL.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "deploy": "git push origin master & git push heroku master"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aaronkplatt/aaronkplatt-employee-tracker.github.io.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aaronkplatt/aaronkplatt-employee-tracker.github.io/issues"
+  },
+  "homepage": "https://github.com/aaronkplatt/aaronkplatt-employee-tracker.github.io#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}
