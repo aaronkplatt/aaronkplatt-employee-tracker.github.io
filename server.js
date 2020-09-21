@@ -22,13 +22,6 @@ connection.connect(function(err) {
     console.log("connected as id " + connection.threadId + "\n");
 });
 
-//Make allEmployees an array
-let allEmployees = [
-    [1, "Aaron", "Platt", "Web Developer", "Engineering", 100000, "Ken Platt"],
-    [2, "Conner", "Platt", "Sales", "Finance", 80000, "Ken Platt"]
-];
-
-
 //THIS IS THE 1ST THING THAT WHILL HAPPEN WHEN THE APPLICATION IS RUN
 initialQuestion();
 function initialQuestion() {
@@ -39,7 +32,7 @@ function initialQuestion() {
             type: "list",
             name: "initialQuestion",
             message: "What would you like to do?",
-            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager"]
+            choices: ["View All Employees", /*"View All Employees By Department",*/ /*"View All Employees By Manager",*/ "Add Employee", /*"Remove Employee",*/ /*"Update Employee Role",*/ /*"Update Employee Manager"*/]
         }
     ])
     .then(function(answers) {
@@ -70,8 +63,29 @@ function initialQuestion() {
 
 //VIEW ALL EMPLOYEES
 function viewAllEmployees() {
+    connection.query(
+        // `SELECT
+        //     employee.id as id,
+        //     employee.first_name as first_name,
+        //     employee.last_name as last_name,
+        //     role.title as title,
+        //     role.salary as salary,
+        //     department.name as department
+        // FROM employee
+        // INNER JOIN role ON
+        //     employee.role_id = role.id
+        //     AND role.department_id = department.id
+        // `,
+        'SELECT * FROM employee',
+        //connection.query(
+         function(err, res) {
+         if (err) throw err;
+      // Log all results of the SELECT statement
+        console.table(res);
+        // console.table(['id', 'first_name', 'last_name', 'title', 'department', 'salary', 'manager'], res);
+        connection.end();
+    });
     //console.table makes the table in the command line and allEmployees is the array at the top of the page 
-    console.table(['id', 'first_name', 'last_name', 'title', 'department', 'salary', 'manager'], allEmployees);
     //go back to inital
     initialQuestion();
 } 
@@ -115,19 +129,19 @@ function addEmployee() {
         {
             type: "list",
             name: "employee_manager",
-            message: "What is this Employee's Manager?",
-            choices: ["None", allEmployees.first_name]
-        },
+            message: "Which Employee do you want to set as Manager for the Employee?",
+            choices: ["None", /*allEmployees.first_name*/]
+        }
     ])
     .then(function(answers) {
         const first_name = answers.first_name;
         const last_name = answers.last_name;
         const role_title = answers.role_title;
         const employee_manager = answers.employee_manager;
+        // console.log(answers);
+        initialQuestion();
     });
-    console.log(answers);
     //go back to inital
-    // initialQuestion();
 }
 
 //REMOVE EMPLOYEE
