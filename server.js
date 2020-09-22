@@ -63,20 +63,12 @@ function initialQuestion() {
 
 //VIEW ALL EMPLOYEES
 function viewAllEmployees() {
+    console.log("generating code... \n");
     connection.query(
-        // `SELECT
-        //     employee.id as id,
-        //     employee.first_name as first_name,
-        //     employee.last_name as last_name,
-        //     role.title as title,
-        //     role.salary as salary,
-        //     department.name as department
-        // FROM employee
-        // INNER JOIN role ON
-        //     employee.role_id = role.id
-        //     AND role.department_id = department.id
-        // `,
-        'SELECT * FROM employee',
+        `SELECT e.id, e.first_name, e.last_name, r.title, r.salary 
+        FROM employee_tracker_db.employee AS E 
+        JOIN employee_tracker_db.role AS R ON E.role_id = R.id;`,
+        // 'SELECT * FROM employee',
         //connection.query(
          function(err, res) {
          if (err) throw err;
