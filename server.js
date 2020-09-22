@@ -63,16 +63,16 @@ function initialQuestion() {
 
 //VIEW ALL EMPLOYEES
 function viewAllEmployees() {
-    console.log("generating code... \n");
     connection.query(
         `SELECT e.id, e.first_name, e.last_name, r.title, r.salary 
         FROM employee_tracker_db.employee AS E 
         JOIN employee_tracker_db.role AS R ON E.role_id = R.id;`,
         // 'SELECT * FROM employee',
         //connection.query(
-         function(err, res) {
-         if (err) throw err;
-      // Log all results of the SELECT statement
+            function(err, res) {
+                if (err) throw err;
+                // Log all results of the SELECT statement
+                console.log("\n");
         console.table(res);
         // console.table(['id', 'first_name', 'last_name', 'title', 'department', 'salary', 'manager'], res);
         connection.end();
