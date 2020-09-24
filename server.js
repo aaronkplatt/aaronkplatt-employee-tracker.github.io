@@ -30,7 +30,7 @@ connection.connect(function(err) {
     console.log("connected as id " + connection.threadId + "\n");
 });
 
-//THIS IS THE 1ST THING THAT WHILL HAPPEN WHEN THE APPLICATION IS RUN
+//THIS IS THE 1ST THING THAT WHILL HAPPEN WHEN THE APPLICATION IS RUN (NOT FULLY WORKING)
 initialQuestion();
 function initialQuestion() {
     inquirer
@@ -40,7 +40,7 @@ function initialQuestion() {
             type: "list",
             name: "initialQuestion",
             message: "What would you like to do?",
-            choices: ["View All Employees", /*"View All Employees By Department",*/ /*"View All Employees By Manager",*/ "Add Employee", /*"Remove Employee",*/ /*"Update Employee Role",*/ /*"Update Employee Manager"*/]
+            choices: ["View All Employees", "View All Employees By Department", /*"View All Employees By Manager",*/ "Add Employee", /*"Remove Employee",*/ /*"Update Employee Role",*/ /*"Update Employee Manager"*/]
         }
     ])
     .then(function(answers) {
@@ -90,21 +90,50 @@ function viewAllEmployees() {
     });
 } 
 
-//VIEW ALL EMPLOYEES BY DEPARTMENT
+//VIEW ALL EMPLOYEES BY DEPARTMENT (WORKING)
 function viewAllEmployeesDepartment() {
-    console.log("working");
+    // console.log("working");
+    inquirer
+    .prompt([
+        {
+            type: "list",
+            name: "viewAllEmployeesDepartment",
+            message: "From which department would you like to see the Employees?",
+            choices: ["Engineering", "Finance", "Legal", "Sales"]
+        }
+    ])
+    .then(function(answers) {
+        const viewAllEmployeesDepartment = answers.viewAllEmployeesDepartment;
+        connection.query(
+            `SELECT concat(e.first_name, ' ', e.last_name) AS name, d.department 
+            FROM employee_tracker_db.employee AS e
+            JOIN employee_tracker_db.role AS r ON e.role_id = r.id
+            JOIN employee_tracker_db.department AS d ON r.department_id = d.id
+            WHERE department = "${viewAllEmployeesDepartment}"`,
+            function(err, res) {
+                if (err) throw err;
+                // Log all results of the SELECT statement
+                console.log("\n");
+                //console.table makes the table in the command line and allEmployees is the array at the top of the page 
+                console.table(res);
+                
+                connection.end();
+                //go back to inital
+                initialQuestion();
+            });
+        });
     //go back to inital
-    initialQuestion();
+    // initialQuestion();
 }
 
-//VIEW ALL EMPLOYEES BY MANAGER
+//VIEW ALL EMPLOYEES BY MANAGER (HAVENT STARTED)
 function viewAllEmployeesManager() {
     console.log("working");
     //go back to inital
     initialQuestion();
 }
 
-//ADD EMPLOYEE
+//ADD EMPLOYEE (NOT WORKING)
 function addEmployee() {
     console.log("working");
     inquirer
@@ -139,51 +168,41 @@ function addEmployee() {
 }
 // THIS IS PART OF ADD EMPLOYEE, NEED to get managers from mysql (NOT WORKING)
 function importManagers() {
-    connection.query(`SELECT concat(m.first_name, ' ', m.last_name) 
-    FROM employee_tracker_db.employee AS e 
-    JOIN employee_tracker_db.employee AS m ON e.manager_id = m.id `, function(err, res) {
-        if (err) throw err;
-        console.log(res);
-        connection.end();
-        });
+
+    
+        // console.log(res);
         inquirer
         .prompt([
             {
-        type: "list",
-        name: "employee_manager",
-        message: "Which Manager do you want to set for the Employee? (Null if No manager)" ,
-        choices: ["Null", function () {
-            var choiceArray = [];
-            for (var i = 0; i < results.length; i++) {
-              choiceArray.push(results[i].employee);
+                type: "list",
+                name: "employee_manager",
+                message: "Which Manager do you want to set for the Employee? (Null if No manager)",
+                choices: [connection.query(`SELECT concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`)] //figure out
             }
-            return choiceArray;
-            }]
-        }
-])
-    .then(function(answers) {
-        const employee_manager = answers.employee_manager;
-        // console.log(answers);
-        //go back to inital
-        initialQuestion();
-    })
-}
+        ])
+.then(function(answers) {
+    const employee_manager = answers.employee_manager;
+    // console.log(answers);
+    //go back to inital
+    initialQuestion();
+});
+} //THIS FUNCTION IS PART OF ADDEMPLOYEE()
 
-//REMOVE EMPLOYEE
+//REMOVE EMPLOYEE (havent started)
 function removeEmployee() {
     console.log("working");
     //go back to inital
     initialQuestion();
 }
 
-//UPDATE EMPLOYEE ROLE
+//UPDATE EMPLOYEE ROLE (havent started)
 function updateEmployeeRole() {
     console.log("working");
     //go back to inital
     initialQuestion();
 }
 
-//UPDATE EMPLOYEE MANAGER
+//UPDATE EMPLOYEE MANAGER (havent started)
 function updateEmployeeManager() {
     console.log("working");
     //go back to inital
