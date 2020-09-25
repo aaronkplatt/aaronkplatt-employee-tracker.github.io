@@ -40,7 +40,7 @@ function initialQuestion() {
             type: "list",
             name: "initialQuestion",
             message: "What would you like to do?",
-            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", /*"Update Employee Role",*/ /*"Update Employee Manager"*/]
+            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", /*"Update Employee Manager"*/]
         }
     ])
     .then(function(answers) {
@@ -171,7 +171,11 @@ function viewAllEmployeesManager() {
 //ADD EMPLOYEE (WORKING)
 function addEmployee() {
     //IMPORT MANAGER
-    let importManagersArray = ["Null"];
+    //Make an object for null and made the ID 0
+    let importManagersArray = [{ 
+        name: "Null", 
+        value: 0
+    }];
     connection.query(`SELECT e.id AS N_id, concat(e.first_name, ' ', e.last_name) AS NAME
     FROM employee_tracker_db.employee AS e`, (err,rows) => {
         if(err) throw err;
@@ -218,7 +222,7 @@ function addEmployee() {
                 type: "list",
                 name: "employee_manager",
                 message: "Which Manager do you want to set for the Employee? (Null if No manager)",
-                choices: importManagersArray 
+                choices: importManagersArray
             }
         ])
         .then(function(answers) {
@@ -280,8 +284,61 @@ function removeEmployee() {
 //UPDATE EMPLOYEE ROLE (havent started)
 function updateEmployeeRole() {
     console.log("working");
-    //go back to inital
-    initialQuestion();
+   // IMPORT Employee's
+   let importEmployeeArray = [];
+   connection.query(`SELECT id, concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
+       if(err) throw err;
+       rows.forEach((row) => {
+        let employeeObject = {
+            name: row.NAME,
+            value: row.id
+        }
+        importEmployeeArray.push(employeeObject);
+       });
+    //IMPORT ROLE
+    let importRoleArray = [];
+    connection.query(`SELECT r.title AS ROLE, r.id AS R_id
+    FROM employee_tracker_db.role AS r`, (err,rows) => {
+        if(err) throw err;
+        rows.forEach((row) => {
+            let roleObject = { //role
+                name: row.ROLE, 
+                value: row.R_id
+            }
+            importRoleArray.push(roleObject)
+            // console.log(importRoleArray)
+        });
+       inquirer
+       .prompt([
+           {
+               type: "list",
+               name: "viewAllEmployees",
+               message: "Which Employee would you like to change the role of?",
+               choices: importEmployeeArray
+           },
+           {
+                type: "list",
+                name: "role_title",
+                message: "What Role would you like to put this Employee?",
+                choices: importRoleArray
+            }
+       ])
+       .then(answers => {
+        const viewAllEmployees = answers.viewAllEmployees;
+        const role_title = answers.role_title;
+        // console.log(importRoleArray)
+        connection.query(
+            `UPDATE employee_tracker_db.employee SET role_id = "${role_title}" WHERE id = "${viewAllEmployees}"`,
+            function(err, res) {
+                if (err) throw err;
+                console.log("\n");
+                console.log("EMPLOYEE UPDATED")
+                //go back to inital
+                initialQuestion();
+            });
+        });
+    });
+    });
 }
 
 //UPDATE EMPLOYEE MANAGER (havent started)
