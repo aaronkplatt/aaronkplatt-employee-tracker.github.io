@@ -17,7 +17,6 @@ var connection = mysql.createConnection({
     host: "localhost",
     // Your port; if not 3306
     port: 3306,
-    
     // Your username
     user: "root",
     // Your password
@@ -30,7 +29,7 @@ connection.connect(function(err) {
     console.log("connected as id " + connection.threadId + "\n");
 });
 
-//THIS IS THE 1ST THING THAT WILL HAPPEN WHEN THE APPLICATION IS STARTED (NOT FULLY WORKING)
+//THIS IS THE 1ST THING THAT WILL HAPPEN WHEN THE APPLICATION IS STARTED (DONE)
 initialQuestion();
 function initialQuestion() {
     inquirer
@@ -40,7 +39,7 @@ function initialQuestion() {
             type: "list",
             name: "initialQuestion",
             message: "What would you like to do?",
-            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", /*"Update Employee Manager"*/]
+            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "Add Department", "Add Role"]
         }
     ])
     .then(function(answers) {
@@ -66,10 +65,16 @@ function initialQuestion() {
         else if (initialQuestion === "Update Employee Manager") {
             updateEmployeeManager();
         } 
+        else if (initialQuestion === "Add Department") {
+            addDepartment();
+        } 
+        else if (initialQuestion === "Add Role") {
+            addRole();
+        } 
     });
 }    
 
-//VIEW ALL EMPLOYEES (WORKING)
+//VIEW ALL EMPLOYEES (DONE)
 function viewAllEmployees() {
     connection.query(
         `SELECT e.id, e.first_name, e.last_name, r.title, d.department, r.salary, concat(m.first_name, ' ', m.last_name) AS manager 
@@ -79,16 +84,15 @@ function viewAllEmployees() {
         JOIN employee_tracker_db.department AS d ON r.department_id = d.id;`,
             function(err, res) {
                 if (err) throw err;
-                // Log all results of the SELECT statement
                 console.log("\n");
-        //console.table makes the table in the command line and allEmployees is the array at the top of the page 
-        console.table(res);
-        //go back to inital
-        initialQuestion();
+            //console.table makes the table in the command line and allEmployees is the array at the top of the page 
+            console.table(res);
+            //go back to inital
+            initialQuestion();
     });
 } 
 
-//VIEW ALL EMPLOYEES BY DEPARTMENT (WORKING)
+//VIEW ALL EMPLOYEES BY DEPARTMENT (DONE)
 function viewAllEmployeesDepartment() {
     let importDepartmentArray = []; //MAKING IT 0 so they dont duplicate
     connection.query(`SELECT id, department FROM employee_tracker_db.department;`, (err,rows) => {
@@ -129,14 +133,22 @@ function viewAllEmployeesDepartment() {
         });
 }
 
-//VIEW ALL EMPLOYEES BY MANAGER (WORKING)
+//VIEW ALL EMPLOYEES BY MANAGER (DONE)
 function viewAllEmployeesManager() {
     // IMPORT MANAGER
-    let importManagersArray = ["Null"];
-    connection.query(`SELECT concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
+    //Make an object for null and made the ID 0
+    let importManagersArray = [{
+        name: "null",
+        value: 0
+    }];
+    connection.query(`SELECT id, concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
         if(err) throw err;
         rows.forEach((row) => {
-            importManagersArray.push(`${row.NAME}`);
+            let managerObject = {
+                name: row.NAME,
+                value: row.id
+            }
+            importManagersArray.push(managerObject);
         });
         inquirer
         .prompt([
@@ -147,7 +159,7 @@ function viewAllEmployeesManager() {
                 choices: importManagersArray
             }
         ])
-        .then(function(answers) {
+        .then(answers => {
             const viewAllEmployeesManager = answers.viewAllEmployeesManager
             console.log(viewAllEmployeesManager);
             connection.query(`SELECT e.first_name, e.last_name, concat(m.first_name, ' ', m.last_name) AS manager 
@@ -155,7 +167,7 @@ function viewAllEmployeesManager() {
             LEFT JOIN employee_tracker_db.employee AS m ON e.manager_id = m.id 
             JOIN employee_tracker_db.role AS r ON e.role_id = r.id
             JOIN employee_tracker_db.department AS d ON r.department_id = d.id
-            WHERE concat(m.first_name, ' ', m.last_name) = "${viewAllEmployeesManager}";`,
+            WHERE m.id = "${viewAllEmployeesManager}";`,
             function(err, res) {
                 if (err) throw err;
                 console.log("\n");
@@ -168,19 +180,19 @@ function viewAllEmployeesManager() {
     });
 }
 
-//ADD EMPLOYEE (WORKING)
+//ADD EMPLOYEE (DONE)
 function addEmployee() {
     //IMPORT MANAGER
     //Make an object for null and made the ID 0
     let importManagersArray = [{ 
-        name: "Null", 
+        name: "null", 
         value: 0
     }];
     connection.query(`SELECT e.id AS N_id, concat(e.first_name, ' ', e.last_name) AS NAME
     FROM employee_tracker_db.employee AS e`, (err,rows) => {
         if(err) throw err;
         rows.forEach((row) => {
-            let managerObject = { //manager
+            let managerObject = { 
                 name: row.NAME, 
                 value: row.N_id
             }
@@ -192,16 +204,14 @@ function addEmployee() {
     FROM employee_tracker_db.role AS r`, (err,rows) => {
         if(err) throw err;
         rows.forEach((row) => {
-            let roleObject = { //role
+            let roleObject = { 
                 name: row.ROLE, 
                 value: row.R_id
             }
             importRoleArray.push(roleObject)
-            // console.log(importRoleArray)
         });
         inquirer
-        .prompt([
-            //WHAT WOULD YOU LIKE TO DO? (initialQuestion) //import role!, 
+        .prompt([ 
             {
                 type: "input",
                 name: "first_name",
@@ -243,7 +253,7 @@ function addEmployee() {
     });
 }
 
-//REMOVE EMPLOYEE (WORKING)
+//REMOVE EMPLOYEE (DONE)
 function removeEmployee() {
     console.log("\n");
     let importEmployeeArray = [];
@@ -266,14 +276,13 @@ function removeEmployee() {
             }
         ])
         .then(answers => {
+            const removeEmployee = answers.removeEmployee
             connection.query(
-            `DELETE FROM employee_tracker_db.employee WHERE id = "${answers.removeEmployee}";`,
+            `DELETE FROM employee_tracker_db.employee WHERE id = "${removeEmployee}";`,
          function(err, res) {
             if (err) throw err;
             console.log("\n");
-            // Log all results of the SELECT statement
-            // console.table(res);
-            console.log("EMPLOYEE REMOVED")
+            console.log("EMPLOYEE REMOVED!")
             //go back to inital
             initialQuestion();
         });
@@ -281,12 +290,12 @@ function removeEmployee() {
     });
 }
 
-//UPDATE EMPLOYEE ROLE (havent started)
+//UPDATE EMPLOYEE ROLE (WORKING)
 function updateEmployeeRole() {
     console.log("working");
-   // IMPORT Employee's
-   let importEmployeeArray = [];
-   connection.query(`SELECT id, concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
+    // IMPORT Employee's
+    let importEmployeeArray = [];
+    connection.query(`SELECT id, concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
        if(err) throw err;
        rows.forEach((row) => {
         let employeeObject = {
@@ -301,15 +310,14 @@ function updateEmployeeRole() {
     FROM employee_tracker_db.role AS r`, (err,rows) => {
         if(err) throw err;
         rows.forEach((row) => {
-            let roleObject = { //role
+            let roleObject = {
                 name: row.ROLE, 
                 value: row.R_id
             }
             importRoleArray.push(roleObject)
-            // console.log(importRoleArray)
         });
-       inquirer
-       .prompt([
+        inquirer
+        .prompt([
            {
                type: "list",
                name: "viewAllEmployees",
@@ -326,13 +334,12 @@ function updateEmployeeRole() {
        .then(answers => {
         const viewAllEmployees = answers.viewAllEmployees;
         const role_title = answers.role_title;
-        // console.log(importRoleArray)
         connection.query(
             `UPDATE employee_tracker_db.employee SET role_id = "${role_title}" WHERE id = "${viewAllEmployees}"`,
             function(err, res) {
                 if (err) throw err;
                 console.log("\n");
-                console.log("EMPLOYEE UPDATED")
+                console.log("EMPLOYEE UPDATED!")
                 //go back to inital
                 initialQuestion();
             });
@@ -341,10 +348,80 @@ function updateEmployeeRole() {
     });
 }
 
-//UPDATE EMPLOYEE MANAGER (havent started)
+//UPDATE EMPLOYEE MANAGER (DONE)
 function updateEmployeeManager() {
-    console.log("working");
-    //go back to inital
-    initialQuestion();
+    // IMPORT Employee's
+    let importEmployeeArray = [];
+    connection.query(`SELECT id, concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
+       if(err) throw err;
+       rows.forEach((row) => {
+        let employeeObject = {
+            name: row.NAME,
+            value: row.id
+        }
+        importEmployeeArray.push(employeeObject);
+       });
+    // IMPORT Manager's
+    let importManagerArray = [{
+        name: "null",
+        value: 0
+    }];
+    connection.query(`SELECT id, concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
+       if(err) throw err;
+       rows.forEach((row) => {
+        let managerObject = {
+            name: row.NAME,
+            value: row.id
+        }
+        importManagerArray.push(managerObject);
+       });
+       inquirer
+       .prompt([
+           {
+               type: "list",
+               name: "viewAllEmployees",
+               message: "Which Employee would you like to change the Manager of?",
+               choices: importEmployeeArray
+           },
+           {
+                type: "list",
+                name: "managerChose",
+                message: "Which Manager do you want to set to this Employee?",
+                choices: importManagerArray
+            }
+       ])
+       .then(answers => {
+        const viewAllEmployees = answers.viewAllEmployees;
+        const managerChose = answers.managerChose;
+        //IF USER CHOOSES THE SAME NAME FOR BOTH QUESTIONS, SEND USER TO INITIAL
+        if (viewAllEmployees == managerChose) {
+            console.log("YOU CAN'T CHOSE THE SAME PERSON. SORRY TRY AGAIN!")
+            //go back to inital
+            initialQuestion();
+        } 
+        else {
+            connection.query(
+                `UPDATE employee_tracker_db.employee SET manager_id = "${managerChose}" WHERE id = "${viewAllEmployees}"`,
+                function(err, res) {
+                    if (err) throw err;
+                    console.log("\n");
+                    console.log("EMPLOYEE MANAGER UPDATED")
+                    //go back to inital
+                    initialQuestion();
+                });
+            }
+        });
+    });
+    });
 }
 
+//ADD DEPARTMENTS (HAVENT STARTED)
+function addDepartment() {
+    console.log("working")
+}
+
+//ADD ROLES (HAVENT STARTED YET)
+function addRole() {
+   console.log("working")
+
+}
