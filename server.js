@@ -53,7 +53,7 @@ function initialQuestion() {
             type: "list",
             name: "initialQuestion",
             message: "What would you like to do?",
-            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", /*"Remove Employee",*/ /*"Update Employee Role",*/ /*"Update Employee Manager"*/]
+            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", /*"Update Employee Role",*/ /*"Update Employee Manager"*/]
         }
     ])
     .then(function(answers) {
@@ -145,7 +145,7 @@ function viewAllEmployeesManager() {
     connection.query(`SELECT concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
         if(err) throw err;
         rows.forEach((row) => {
-            importManagersArray.push(`${row.NAME}`)
+            importManagersArray.push(`${row.NAME}`);
         });
         inquirer
         .prompt([
@@ -173,7 +173,6 @@ function viewAllEmployeesManager() {
                 //go back to inital
                 initialQuestion();
             });
-            //go back to inital
         });
     });
 }
@@ -235,11 +234,42 @@ function addEmployee() {
     });
 }
 
-//REMOVE EMPLOYEE (havent started)
+//REMOVE EMPLOYEE (WORKING)
 function removeEmployee() {
-    console.log("working");
-    //go back to inital
-    initialQuestion();
+    console.log("\n");
+    let importEmployeeArray = [];
+    connection.query(`SELECT id, concat(first_name, ' ', last_name) AS NAME FROM employee_tracker_db.employee`, (err,rows) => {
+        if(err) throw err;
+        rows.forEach((row) => {
+            let emp = {
+                name: row.NAME,
+                value: row.id
+            };
+            importEmployeeArray.push(emp);
+        });
+        inquirer
+        .prompt([
+            {
+                type: "list",
+                name: "removeEmployee",
+                message: "Which Employee would you like to delete?",
+                choices: importEmployeeArray
+            }
+        ])
+        .then(answers => {
+            connection.query(
+            `DELETE FROM employee_tracker_db.employee WHERE id = "${answers.removeEmployee}";`,
+         function(err, res) {
+            if (err) throw err;
+            console.log("\n");
+            // Log all results of the SELECT statement
+            // console.table(res);
+            console.log("EMPLOYEE REMOVED")
+            //go back to inital
+            initialQuestion();
+        });
+    });
+    });
 }
 
 //UPDATE EMPLOYEE ROLE (havent started)
