@@ -30,19 +30,6 @@ connection.connect(function(err) {
     console.log("connected as id " + connection.threadId + "\n");
 });
 
-//EMPTY OBJECTS with ID's
-let employeeListArray = {}; // havent used yet
-let managerListArray = {}; //havent used yet
-let roleListArray = {}; // havent used yet
-let departmentListArray = {}; // havent used yet
-
-//EMPTY ARRAYS
-let importEmployeeArray = []; //havent used yet
-let importManagersArray = ["Null"]; //NULL IF NO MANAGER
-let importRoleArray = [] //havent used yet
-let importDepartmentArray = []; //havent used yet
-
-
 //THIS IS THE 1ST THING THAT WILL HAPPEN WHEN THE APPLICATION IS STARTED (NOT FULLY WORKING)
 initialQuestion();
 function initialQuestion() {
@@ -104,10 +91,14 @@ function viewAllEmployees() {
 //VIEW ALL EMPLOYEES BY DEPARTMENT (WORKING)
 function viewAllEmployeesDepartment() {
     let importDepartmentArray = []; //MAKING IT 0 so they dont duplicate
-    connection.query(`SELECT department FROM employee_tracker_db.department;`, (err,rows) => {
+    connection.query(`SELECT id, department FROM employee_tracker_db.department;`, (err,rows) => {
         if(err) throw err;
         rows.forEach((row) => {
-            importDepartmentArray.push(`${row.department}`)
+            let departmentObject = {
+                name: row.department,
+                value: row.id
+            }
+            importDepartmentArray.push(departmentObject);
         });
         inquirer
         .prompt([
@@ -118,14 +109,14 @@ function viewAllEmployeesDepartment() {
                 choices: importDepartmentArray
             }
         ])
-        .then(function(answers) {
+        .then(answers => {
             const viewAllEmployeesDepartment = answers.viewAllEmployeesDepartment;
             connection.query(
                 `SELECT concat(e.first_name, ' ', e.last_name) AS name, d.department 
                 FROM employee_tracker_db.employee AS e
                 JOIN employee_tracker_db.role AS r ON e.role_id = r.id
                 JOIN employee_tracker_db.department AS d ON r.department_id = d.id
-                WHERE department = "${viewAllEmployeesDepartment}"`,
+                WHERE department_id = "${viewAllEmployeesDepartment}";`,
                 function(err, res) {
                     if (err) throw err;
                     console.log("\n");
@@ -177,17 +168,32 @@ function viewAllEmployeesManager() {
     });
 }
 
-//ADD EMPLOYEE (NOT WORKING)
+//ADD EMPLOYEE (WORKING)
 function addEmployee() {
+    //IMPORT MANAGER
     let importManagersArray = ["Null"];
-    let importRoleArray = [];
-    connection.query(`SELECT concat(first_name, ' ', last_name) AS NAME, r.title AS ROLE
-    FROM employee_tracker_db.employee AS e
-    JOIN employee_tracker_db.role AS r ON e.role_id = r.id`, (err,rows) => {
+    connection.query(`SELECT e.id AS N_id, concat(e.first_name, ' ', e.last_name) AS NAME
+    FROM employee_tracker_db.employee AS e`, (err,rows) => {
         if(err) throw err;
         rows.forEach((row) => {
-            importManagersArray.push(`${row.NAME}`)
-            importRoleArray.push(`${row.ROLE}`)
+            let managerObject = { //manager
+                name: row.NAME, 
+                value: row.N_id
+            }
+            importManagersArray.push(managerObject)
+        });
+    //IMPORT ROLE
+    let importRoleArray = [];
+    connection.query(`SELECT r.title AS ROLE, r.id AS R_id
+    FROM employee_tracker_db.role AS r`, (err,rows) => {
+        if(err) throw err;
+        rows.forEach((row) => {
+            let roleObject = { //role
+                name: row.ROLE, 
+                value: row.R_id
+            }
+            importRoleArray.push(roleObject)
+            // console.log(importRoleArray)
         });
         inquirer
         .prompt([
@@ -221,16 +227,15 @@ function addEmployee() {
             role_title = answers.role_title,
             employee_manager = answers.employee_manager,
             connection.query(`INSERT INTO employee_tracker_db.employee (first_name,last_name,role_id,manager_id)
-            VALUES ("${first_name}","${last_name}",3,4)`,//DAD WILL HELP 
-            
+            VALUES ("${first_name}","${last_name}","${role_title}","${employee_manager}")`,
                 function(err) {
                     if(err) throw err;
-                    
                     console.log("EMPLOYEE ADDED!")
                     initialQuestion();
                 }
             );
         });
+    });
     });
 }
 
