@@ -39,7 +39,7 @@ function initialQuestion() {
             type: "list",
             name: "initialQuestion",
             message: "What would you like to do?",
-            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "Add Department", "Add Role"]
+            choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "Add Department", "Delete Department", "View All Departments", "View All Roles", "Add Role", "Delete Role"]
         }
     ])
     .then(function(answers) {
@@ -67,9 +67,21 @@ function initialQuestion() {
         } 
         else if (initialQuestion === "Add Department") {
             addDepartment();
+        }
+        else if (initialQuestion === "Delete Department") {
+            deleteDepartment();
+        }  
+        else if (initialQuestion === "View All Departments") {
+            viewAllDepartments();
         } 
         else if (initialQuestion === "Add Role") {
             addRole();
+        }
+        else if (initialQuestion === "Delete Role") {
+            deleteRole();
+        } 
+        else if (initialQuestion === "View All Roles") {
+            viewAllRole();
         } 
     });
 }    
@@ -235,7 +247,7 @@ function addEmployee() {
                 choices: importManagersArray
             }
         ])
-        .then(function(answers) {
+        .then(answers => {
             first_name = answers.first_name,
             last_name = answers.last_name,
             role_title = answers.role_title,
@@ -415,13 +427,169 @@ function updateEmployeeManager() {
     });
 }
 
-//ADD DEPARTMENTS (HAVENT STARTED)
+//ADD DEPARTMENTS (DONE)
 function addDepartment() {
-    console.log("working")
+    inquirer
+    .prompt([
+        {
+            type: "input",
+            name: "addDepartment",
+            message: "What is the name of the New Department?"
+        }
+    ])
+    .then(answers => {
+        const addDepartment = answers.addDepartment
+        connection.query(`INSERT INTO employee_tracker_db.department (department)
+        VALUES ("${addDepartment}")`,
+            function(err) {
+                if(err) throw err;
+                console.log("DEPARTMENT ADDED!")
+                initialQuestion();
+            }
+        );
+    });  
 }
 
-//ADD ROLES (HAVENT STARTED YET)
-function addRole() {
-   console.log("working")
+//DELETE DEPARTMENTS (DONE)
+function deleteDepartment() {
+    console.log("\n");
+    let importDepartmentArray = [];
+    connection.query(`SELECT id, department AS NAME FROM employee_tracker_db.department`, (err,rows) => {
+        if(err) throw err;
+        rows.forEach((row) => {
+            let dep = {
+                name: row.NAME,
+                value: row.id
+            };
+            importDepartmentArray.push(dep);
+        });
+    inquirer
+    .prompt([
+        {
+            type: "list",
+            name: "removeDepartment",
+            message: "Which Department do you want to Remove?",
+            choices: importDepartmentArray
+        }
+    ])
+    .then(answers => {
+        const removeDepartment = answers.removeDepartment
+        connection.query(`DELETE FROM employee_tracker_db.department WHERE id = "${removeDepartment}";`,
+            function(err) {
+                if(err) throw err;
+                console.log("DEPARTMENT Removed!")
+                initialQuestion();
+            }
+        );
+    });
+    });  
+}
 
+//VIEW ALL DEPARTMENTS (DONE)
+function viewAllDepartments() {
+    connection.query(`SELECT department FROM employee_tracker_db.department;`,
+    function(err, res) {
+        if (err) throw err;
+        console.log("\n");
+        // Log all results of the SELECT statement
+        console.table(res);
+        //go back to inital
+        initialQuestion();
+    });
+}
+
+//ADD ROLES (DONE)
+function addRole() {
+    let departmentArray = []
+    connection.query(`SELECT id, department FROM employee_tracker_db.department;`
+    , (err,rows) => {
+        if(err) throw err;
+       rows.forEach((row) => {
+        let departmentObject = {
+            name: row.department,
+            value: row.id
+        }
+        departmentArray.push(departmentObject);
+    });
+    inquirer
+    .prompt([
+        {
+            type: "input",
+            name: "addRole",
+            message: "What is the name of the New Role?"
+        },
+        {
+            type: "input",
+            name: "addSalaryRole",
+            message: "What is the Salary of the New Role? (Must be an Integer)"
+        },
+        {
+            type: "list",
+            name: "addDepartmentRole",
+            message: "What is the Department of the New Role?",
+            choices: departmentArray
+        }
+    ])
+    .then(answers => {
+        const addRole = answers.addRole
+        const addSalaryRole = answers.addSalaryRole
+        const addDepartmentRole = answers.addDepartmentRole
+        connection.query(`INSERT INTO employee_tracker_db.role (title, salary, department_id)
+        VALUES ("${addRole}", "${addSalaryRole}", "${addDepartmentRole}")`,
+            function(err) {
+                if(err) throw err;
+                console.log("ROLE ADDED!")
+                initialQuestion();
+            }
+        );
+    });  
+    })
+}
+
+//VIEW ALL ROLES (DONE)
+function viewAllRole() {
+    connection.query(`SELECT title, salary FROM employee_tracker_db.role;`,
+    function(err, res) {
+        if (err) throw err;
+        console.log("\n");
+        // Log all results of the SELECT statement
+        console.table(res);
+        //go back to inital
+        initialQuestion();
+    });
+}
+
+//DELETE ROLE
+function deleteRole() {
+    console.log("\n");
+    let importRoleArray = [];
+    connection.query(`SELECT id, title FROM employee_tracker_db.role;`, (err,rows) => {
+        if(err) throw err;
+        rows.forEach((row) => {
+            let role = {
+                name: row.title,
+                value: row.id
+            };
+            importRoleArray.push(role);
+        });
+    inquirer
+    .prompt([
+        {
+            type: "list",
+            name: "removeRole",
+            message: "Which Role do you want to Remove?",
+            choices: importRoleArray
+        }
+    ])
+    .then(answers => {
+        const removeRole = answers.removeRole
+        connection.query(`DELETE FROM employee_tracker_db.department WHERE id = "${removeRole}";`,
+            function(err) {
+                if(err) throw err;
+                console.log("ROLE REMOVED!")
+                initialQuestion();
+            }
+        );
+    });
+    }); 
 }
