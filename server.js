@@ -173,7 +173,6 @@ function viewAllEmployeesManager() {
         ])
         .then(answers => {
             const viewAllEmployeesManager = answers.viewAllEmployeesManager
-            console.log(viewAllEmployeesManager);
             connection.query(`SELECT e.first_name, e.last_name, concat(m.first_name, ' ', m.last_name) AS manager 
             FROM employee_tracker_db.employee AS e 
             LEFT JOIN employee_tracker_db.employee AS m ON e.manager_id = m.id 
@@ -559,7 +558,7 @@ function viewAllRole() {
     });
 }
 
-//DELETE ROLE
+//DELETE ROLE (DONE)
 function deleteRole() {
     console.log("\n");
     let importRoleArray = [];
@@ -583,7 +582,7 @@ function deleteRole() {
     ])
     .then(answers => {
         const removeRole = answers.removeRole
-        connection.query(`DELETE FROM employee_tracker_db.department WHERE id = "${removeRole}";`,
+        connection.query(`DELETE FROM employee_tracker_db.role WHERE id = "${removeRole}";`,
             function(err) {
                 if(err) throw err;
                 console.log("ROLE REMOVED!")
